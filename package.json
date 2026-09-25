@@ -1,0 +1,13 @@
+{
+  "name": "devcareer",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "piston:up": "docker compose up -d piston",
+    "piston:install": "npm run install-runtimes -w server",
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
