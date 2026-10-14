@@ -1,66 +1,113 @@
 # DevCareer
 
-Impari a programmare facendo carriera: da stagista in su, un esercizio alla volta.
+**Learn to code by building a career.** You start as an intern in a 3D office, sit down at your desk and write real Python code. Every exercise you solve earns you money and moves you up the ladder: intern → junior on a fixed-term contract → junior on a permanent contract → mid developer.
 
-## Requisiti
-- Node.js 20+
-- Docker Desktop (per la sandbox Piston: l'API pubblica è solo su whitelist)
+> This is a playable prototype. Its goal is to find out whether the loop *write real code → earn → progress* is fun and actually teaches. Expect rough edges.
 
-## Avvio
+## Features
+
+- **Real code, really executed.** Your code runs in a [Piston](https://github.com/engineer-man/piston) sandbox, not in a simulation, and is checked against visible and hidden tests.
+- **A 3D office** built with Three.js: walk around with WASD or by clicking, see your colleagues typing at their PCs, and sit at your own desk.
+- **A PC with a desktop.** When you sit down, the camera frames your desk and the monitor shows a working desktop. Opening an app zooms in on the screen. The apps are:
+  - **Courses**: one lesson per topic, with slides, runnable examples and an optional mini-quiz;
+  - **Editor**: the exercises, using the Monaco editor;
+  - **Shop**, **Mail** and **Profile**.
+- **Lessons → exercises → final project.** Each module ends with a longer project (a canteen receipt, a bonus calculator, a ticket report, a warehouse manager). Completing it earns you the promotion.
+- **A shop for your desk.** You spend your earnings on items that appear on your 3D desk. Three of them also change the game:
+  - a bigger monitor gives you more room for code;
+  - a rubber duck shows line by line where your output differs from the expected one;
+  - an espresso machine adds +10% to your rewards.
+- **Two languages.** Italian and English, chosen at start-up. Briefs, hints, lessons and even the expected outputs are translated.
+- **Consistent content.** An automated checker guarantees, for every language, that briefs, hints, examples, quiz answers and tests agree with each other (see [Content checks](#content-checks)).
+
+Only Python is available for now, but exercises and lessons are organised so that more languages can be added.
+
+## Requirements
+
+- Node.js 22 or later (the server uses the built-in `node:sqlite` module)
+- Docker, to run the Piston sandbox locally (the public Piston API is now whitelist-only)
+
+## Getting started
+
 ```bash
 npm install
-npm run piston:up        # avvia il container Piston (porta 2000)
-npm run piston:install   # installa i runtime dichiarati in server/src/languages.js (solo la prima volta)
-npm run dev              # server su :3001 e client su http://localhost:5173
+npm run piston:up        # start the Piston container on port 2000
+npm run piston:install   # install the runtimes listed in server/src/languages.js (first time only)
+npm run dev              # server on :3001, client on http://localhost:5173
 ```
 
-## Come si gioca
-Si parte nell'ufficio 3D: ci si muove con WASD o le frecce, oppure cliccando sul pavimento. La propria scrivania è quella con la freccia verde: ci si siede con E (o cliccandola). Da seduti si vede la scrivania con il PC; aprendo un'app sul desktop (Corsi, Editor, Negozio, Posta, Profilo) la camera si avvicina al monitor. Esc chiude l'app, un secondo Esc fa alzare. Se il browser non supporta WebGL, il desktop occupa tutta la pagina.
+Your progress is saved in `server/data/devcareer.db`. Delete that file to start over.
 
-Il percorso è fatto così: ogni argomento ha una **lezione** nell'app Corsi (slide con esempi da eseguire con «Prova» e un mini-quiz facoltativo), seguita dai suoi esercizi nell'Editor. Ogni modulo si chiude con un **progetto finale**, un programma più lungo con consegna a passi: completarlo chiude il modulo e porta la promozione.
+## How to play
 
-Il **Negozio** vende oggetti per la scrivania, ognuno con un posto fisso. Tre hanno un effetto, attivo solo quando sono sulla scrivania: monitor grande (schermo più grande da seduti), papera di gomma (differenze riga per riga nei test falliti), macchina espresso (+10% sulle ricompense).
+| Where | Controls |
+|---|---|
+| Office | WASD or arrow keys to move, or click on the floor. Your desk is the one with the green arrow. |
+| Your desk | **E** (or click the desk) to sit down. Open an app on the monitor to start working. |
+| Leaving | **Esc** closes the open app; a second **Esc** makes you stand up. |
 
-## Struttura
-- `server/src/languages.js`: registro dei linguaggi. Per aggiungerne uno basta una voce qui e poi `piston:install`.
-- `server/src/piston.js`: client Piston con i limiti di tempo e memoria; normalizza la risposta.
-- `server/src/lessons/`: le lezioni, un file per percorso (`python.js`): slide, esempi eseguibili, quiz ed esercizi collegati.
-- `server/src/exercises/`: un file per percorso (`python.js`), più i progetti finali (`python-projects.js`, `kind: 'project'`). Ogni esercizio ha modulo, ricompensa, test (`stdin` → output atteso, eventualmente `hidden`) e, per ogni lingua dell'interfaccia (`it`, `en`), consegna, suggerimenti, codice iniziale e soluzione di riferimento. L'output atteso è una stringa se non dipende dalla lingua, altrimenti `{ it, en }`.
-- `server/src/grader.js`: esegue il codice su ogni test e confronta l'output (ignora spazi a fine riga e righe vuote finali).
-- `server/src/career.js`: moduli didattici e gradi di carriera (ruolo + contratto). Si sale completando moduli interi: Le basi → Junior a tempo determinato; Condizioni + Cicli → Junior a tempo indeterminato; Funzioni → Mid. Il saldo è solo valuta, non conta per le promozioni.
-- `server/src/shop.js`: catalogo del negozio ed effetti degli oggetti. `server/src/mail.js`: posta aziendale, ricavata dal grado raggiunto (benvenuto + una mail per promozione).
-- `server/src/locales.js`, `messages.js`: lingue dell'interfaccia e messaggi d'errore dell'API. Il client manda la lingua nell'header `X-Locale`.
-- `server/src/db.js`, `player.js`: SQLite (modulo `node:sqlite` integrato), file in `server/data/`. Un solo giocatore locale.
-- `client/src/office/`: ufficio 3D in Three.js (caricato a parte). `OfficeScene.js` gestisce stanza, luci, movimento, collisioni e le inquadrature da seduti (lo schermo resta parallelo alla camera, così il desktop HTML ci si sovrappone esattamente); `deskItems.js` gli oggetti del negozio e i loro posti; `models.js` costruisce arredi e personaggi con le primitive di Three.js; `textures.js` disegna su canvas pavimento, panorama, lavagna e schermi. Nessun file esterno da scaricare.
-- `client/src/desktop/`: il desktop del PC (`Desktop.jsx`) e le sue app: `EditorApp`, `ShopApp`, `MailApp`, `ProfileApp`.
-- `client/`: React + Vite + Monaco Editor. Il proxy di Vite inoltra `/api` al server. I testi dell'interfaccia sono in `client/src/i18n/strings.js`; la lingua scelta all'avvio resta nel localStorage del browser.
+If your browser doesn't support WebGL, the desktop simply fills the whole page.
 
-## Aggiungere o modificare esercizi
-Dopo ogni modifica lancia `npm run check-exercises -w server`. Per ogni lingua verifica che:
-- la soluzione di riferimento superi tutti i test e il codice iniziale no;
-- ogni esempio di codice nella consegna e nei suggerimenti stampi davvero l'`output` dichiarato;
-- ogni riga di output attesa che contiene testo compaia nella consegna (numeri e valori letti dall'input possono essere scritti come `<segnaposto>`);
-- le stringhe tra virgolette nei suggerimenti e nel codice iniziale facciano parte dell'output atteso;
-- nessun testo contenga l'output atteso di un'altra lingua;
-- ogni esempio nelle slide stampi quello che dichiara; nelle domande «cosa stampa?» la risposta giusta sia proprio l'output del codice e nessuna sbagliata lo sia;
-- ogni esercizio stia in una sola lezione del suo modulo, e ogni modulo abbia un solo progetto finale, come ultimo esercizio;
-- i testi di client, server e carriera abbiano le stesse chiavi in tutte le lingue.
+## Project structure
 
-Per ricominciare da zero, cancella `server/data/devcareer.db`.
+```
+server/   Express API, Piston client, grader, game state (SQLite)
+  src/lessons/      lessons: slides, runnable examples, quizzes
+  src/exercises/    exercises and final projects, one file per language track
+  src/career.js     modules, roles, contracts and promotion rules
+  src/shop.js       shop catalogue and item effects
+  scripts/          content checker, runtime installer
+client/   React + Vite
+  src/office/       the 3D office (Three.js, procedural models and textures)
+  src/desktop/      the in-game PC and its apps
+  src/i18n/         interface strings (Italian, English)
+```
+
+Comments in the source code are written in Italian.
+
+## Content checks
+
+After changing exercises, lessons or translations, run:
+
+```bash
+npm run check-exercises -w server
+```
+
+It checks every language and fails if anything is inconsistent:
+
+- every reference solution passes all tests, and no starter code passes them on its own;
+- every code example (in briefs, hints and slides) prints exactly the output it claims;
+- every expected output line that contains text is stated in the brief;
+- strings printed in hints and starter code match the expected output, so no hint prints `"Hello"` when the test wants `"Ciao"`;
+- no text contains the expected output of another language;
+- in "what does this print?" quiz questions, the correct answer is the real output of the code and no wrong answer matches it;
+- every exercise belongs to one lesson, and every module has exactly one final project, placed last;
+- all interface, server and career texts have the same keys and placeholders in every language.
 
 ## API
-| Metodo | Percorso | Descrizione |
+
+| Method | Path | Description |
 |---|---|---|
-| GET | `/api/health` | stato di Piston e dei runtime |
-| POST | `/api/run` | esecuzione libera `{ language, code, stdin }` |
-| GET | `/api/player` | saldo, grado, progressi |
-| GET | `/api/exercises` | elenco con stato completato/sbloccato |
-| GET | `/api/exercises/:id` | dettaglio (senza test nascosti né soluzione) |
-| POST | `/api/exercises/:id/submit` | verifica `{ code }`, assegna ricompensa e promozioni |
-| GET | `/api/shop` | catalogo con oggetti posseduti e posati sulla scrivania |
-| POST | `/api/shop/:id/buy` | compra un oggetto (lo posa subito sulla scrivania) |
-| POST | `/api/shop/:id/equip` | `{ equipped }`: sulla scrivania o nel cassetto |
-| GET | `/api/mail` | posta aziendale |
-| GET | `/api/lessons` | elenco delle lezioni con avanzamento |
-| GET | `/api/lessons/:id` | slide e quiz di una lezione |
-| POST | `/api/lessons/:id/progress` | `{ viewed }` o `{ quizScore }` |
+| GET | `/api/health` | Piston and runtime status |
+| POST | `/api/run` | free execution `{ language, code, stdin }` |
+| GET | `/api/player` | balance, rank, progress, desk items |
+| GET | `/api/exercises` | exercise list with completed/unlocked state |
+| GET | `/api/exercises/:id` | exercise detail (without hidden tests or solution) |
+| POST | `/api/exercises/:id/submit` | grades `{ code }`, pays the reward, handles promotions |
+| GET | `/api/lessons` | lesson list with progress |
+| GET | `/api/lessons/:id` | slides and quiz of a lesson |
+| POST | `/api/lessons/:id/progress` | `{ viewed }` or `{ quizScore }` |
+| GET | `/api/shop` | catalogue, with owned and equipped items |
+| POST | `/api/shop/:id/buy` | buys an item and places it on the desk |
+| POST | `/api/shop/:id/equip` | `{ equipped }`: on the desk or in the drawer |
+| GET | `/api/mail` | company mail |
+
+The client sends the chosen interface language in the `X-Locale` header.
+
+## Credits
+
+Created by **Flavio Ruggiero**, with the help of **Claude** (Anthropic's AI assistant) through Claude Code. Flavio designed the game, set its direction and made the decisions along the way; Claude helped write the code, the lessons and the exercises.
+
+## License
+
+[MIT](LICENSE) © 2026 Flavio Ruggiero

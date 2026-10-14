@@ -1,5 +1,8 @@
 {
   "name": "devcareer",
+  "description": "Learn to code by building a career: write real Python in a 3D office, earn money and get promoted from intern to developer.",
+  "author": "Flavio Ruggiero",
+  "license": "MIT",
   "private": true,
   "workspaces": ["server", "client"],
   "scripts": {
